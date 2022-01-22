@@ -37,7 +37,10 @@ module.exports = function(initiator, hash) {
                 })
             }
             // console.log(data, id)
-        })
+        });
+        setInterval(function(){
+            gun.get("simple-peer").get(hash_alias).get("channel-setup").map()
+        },5000)
     }
 
     function setup_peer(peer_channelName) {
@@ -48,6 +51,9 @@ module.exports = function(initiator, hash) {
                 peer.signal(data_parse(data))
             }
         })
+        setInterval(function(){
+            gun.get("simple-peer").get(hash_alias).get("channel-data").get(peer_channelName).get(SIDE_2).get("signal").map()
+        },5000)
 
         var signalList = [];
 
