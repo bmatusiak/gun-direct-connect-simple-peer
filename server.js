@@ -1,7 +1,7 @@
 
 
-var hash = "igSBrdYKihT4nD5ggix/U4Snrpk+N2TKjDT05xCZXK8=234567891234"
-  // +(new Date().getTime());
+var hash = "igSBrdYKihT4nD5ggix/U4Snrpk+N2TKjDT05xCZXK8=234567891234567"
+  +(new Date().getTime());
   
   
 require("./index.js")(false,hash);
