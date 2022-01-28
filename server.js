@@ -18,8 +18,8 @@ var pair_slave = {
 }
 
 
-// setTimeout(function() {
-    // require("./index.js")(true, pair_slave, pair_master);
-// }, 1000);
-
+if(process.env.INITIATOR){
+    require("./index.js")(true, pair_slave, pair_master);
+}else{
     require("./index.js")(false,pair_master, pair_slave);
+}
