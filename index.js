@@ -201,8 +201,11 @@ module.exports = function(initiator, pair_me, pair_them) {
         });
         
         var ping_interval = setInterval(function(){
+            
+            var check_last_ping = new Date().getTime();
             if(connected){
-                
+                var time_sense = check_last_ping - last_ping;
+                console.log(time_sense)
             }
         },1000)
 
