@@ -143,6 +143,7 @@ module.exports = function(initiator, pair_me, pair_them) {
 
 
     function peer_factory(signaler) {
+        console.log("setting up webrtc")
         var connected = false;
         var peer = new Peer({ initiator: initiator, wrtc: wrtc });
         
@@ -208,7 +209,9 @@ module.exports = function(initiator, pair_me, pair_them) {
                 data = JSON.parse(data);
             
             // got a data channel message
-            console.log('got a message from ', SIDE_2 , data);
+            if(data.ping){
+                console.log('got ping from ', SIDE_2);
+            }
         });
         
         var ping_interval = setInterval(function(){
@@ -217,12 +220,12 @@ module.exports = function(initiator, pair_me, pair_them) {
             if(connected && last_ping != 0){
                 var time_sense = check_last_ping - last_ping;
                 if(time_sense > (10* 1000)){
-                    console.log(time_sense)
+                    console.log(time_sense);
                     peer.destroy();
-                    
+                    clearInterval(ping_interval);
                 }
             }
-        },1000)
+        },1000);
 
         return peer;
     }
