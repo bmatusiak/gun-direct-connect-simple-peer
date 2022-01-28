@@ -210,7 +210,7 @@ module.exports = function(initiator, pair_me, pair_them) {
             // got a data channel message
             if(data.ping){
                 last_ping = new Date().getTime();
-                console.log('got ping from ', SIDE_2);
+                // console.log('got ping from ', SIDE_2);
             }
         });
         
