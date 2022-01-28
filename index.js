@@ -182,18 +182,25 @@ module.exports = function(initiator, pair_me, pair_them) {
             console.log("connected to", SIDE_2);
             connected = true;
 
-            var interval_id = setInterval(function() {
+            var interval_id = setInterval(async function() {
                 if (!connected) {
                     clearInterval(interval_id);
                 }
-                else
-                    peer.send(JSON.stringify({ ping: (new Date().getTime()) }) );
+                else{
+                    var $t = JSON.stringify({ ping: (new Date().getTime()) }); 
+                    var t = await SEA.encrypt($t, await SEA.secret(pair_them.epub, pair_me));
+                    peer.send(t);
+                }
             }, 1000);
 
         });
 
-        peer.on('data', data => {
+        peer.on('data', async data => {
             last_ping = new Date().getTime();
+            
+            if (data.indexOf("SEA") >= 0)
+                data = await SEA.decrypt(data, await SEA.secret(pair_them.epub, pair_me));
+                     
             data = JSON.parse(data);
             
             // got a data channel message
