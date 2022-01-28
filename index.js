@@ -197,7 +197,6 @@ module.exports = function(initiator, pair_me, pair_them) {
         });
 
         peer.on('data', async data => {
-            last_ping = new Date().getTime();
             
             if(data instanceof Buffer)
                 data = data.toString("utf8")
@@ -210,6 +209,7 @@ module.exports = function(initiator, pair_me, pair_them) {
             
             // got a data channel message
             if(data.ping){
+                last_ping = new Date().getTime();
                 console.log('got ping from ', SIDE_2);
             }
         });
