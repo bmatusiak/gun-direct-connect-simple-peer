@@ -2,8 +2,8 @@ module.exports = function(initiator, pair_me, pair_them) {
     var SIDE_1 = initiator ? "peer1" : "peer2";
     var SIDE_2 = initiator ? "peer2" : "peer1";
 
-    var PUB = initiator ? pair_me.pub+pair_them.pub : pair_them.pub+pair_me.pub;
-    
+    var PUB = initiator ? pair_me.pub + pair_them.pub : pair_them.pub + pair_me.pub;
+
     var hotp = require('hotp');
     var GUN = require("./gun-connection.js");
     var SEA = GUN.SEA;
@@ -30,20 +30,27 @@ module.exports = function(initiator, pair_me, pair_them) {
 
     var signalData = [];
     var signalData_NOUNCE = 0;
-    var peer = peer_factory(function($signalData) {
-        if ($signalData.length)
-            signalData = $signalData;
-        ++signalData_NOUNCE;
-    });
-    
-    
-                
-    var last_tx,  lt_rx; //last_rx, lt_tx,
+    var peer;
+
+
+
+    var last_tx, lt_rx; //last_rx, lt_tx,
     var run_tx = false;
     var run_rx = false;
+
+    function peerSetup() {
+
+        if (!peer || peer.destroyed) {
+            peer = peer_factory(function($signalData) {
+                if ($signalData.length)
+                    signalData = $signalData;
+                ++signalData_NOUNCE;
+            });
+        }
+    }
     setInterval(async function() {
 
-
+        peerSetup();
         // if (run_rx) return;
 
         if (!run_tx) {
@@ -87,46 +94,48 @@ module.exports = function(initiator, pair_me, pair_them) {
                 //     lt_tx = token;
                 // }
                 // if (newToken) {
-                    run_rx = true;
-                    
-                    var $token = hotp(hash_alias, token, hotp_options);
-                    gun.get($token).get(hash_alias).get("tx").get(SIDE_2).once(async function(data, index) {
-                        run_rx = false;
-                        if (!data || last_tx == data) return;
-                        last_tx = data;
+                run_rx = true;
 
-                        var d = data;
-                        if (data.indexOf("SEA") >= 0)
-                            d = await SEA.decrypt(d, await SEA.secret(pair_them.epub, pair_me));
-                        
-                        if(SIDE_1 == "peer1")
-                            console.log(SIDE_1, "get", d, index);
-                        
-                        if(!d.ack && d.nounce){
-                            var $t = JSON.stringify({ ack: d.nounce });
-                            // console.log($t)
-                            var t = await SEA.encrypt($t, await SEA.secret(pair_them.epub, pair_me));
-    
-                            gun.get($token).get(hash_alias).get("tx").get(SIDE_1).put(t, function() {
-                                // run_tx = false;
-                                console.log(SIDE_1, "put tx-ack", signalData_NOUNCE, signalData.length);
-                                
-                                if(d.signals){
-                                    for(var i in d.signals){
-                                        peer.signal(d.signals[i]);
-                                    }
+                var $token = hotp(hash_alias, token, hotp_options);
+                gun.get($token).get(hash_alias).get("tx").get(SIDE_2).once(async function(data, index) {
+                    run_rx = false;
+                    if (!data || last_tx == data) return;
+                    last_tx = data;
+
+                    var d = data;
+                    if (data.indexOf("SEA") >= 0)
+                        d = await SEA.decrypt(d, await SEA.secret(pair_them.epub, pair_me));
+
+                    if (SIDE_1 == "peer1")
+                        console.log(SIDE_1, "get", d, index);
+
+                    if (!d.ack && d.nounce) {
+                        var $t = JSON.stringify({ ack: d.nounce });
+                        // console.log($t)
+                        var t = await SEA.encrypt($t, await SEA.secret(pair_them.epub, pair_me));
+
+                        gun.get($token).get(hash_alias).get("tx").get(SIDE_1).put(t, function() {
+                            // run_tx = false;
+                            console.log(SIDE_1, "put tx-ack", signalData_NOUNCE, signalData.length);
+                            peerSetup();
+                            
+                            if (d.signals) {
+                                for (var i in d.signals) {
+                                    peer.signal(d.signals[i]);
                                 }
-                                // ++signalData_NOUNCE;
-                            });
-                        }else{
-                            if(d.ack == signalData_NOUNCE){
-                                console.log("ACK", SIDE_1);
-                                signalData = [];
-                                // ++signalData_NOUNCE;
                             }
+                            // ++signalData_NOUNCE;
+                        });
+                    }
+                    else {
+                        if (d.ack == signalData_NOUNCE) {
+                            console.log("ACK", SIDE_1);
+                            signalData = [];
+                            // ++signalData_NOUNCE;
                         }
-                        
-                    });
+                    }
+
+                });
                 // }
             })();
         }
@@ -138,17 +147,17 @@ module.exports = function(initiator, pair_me, pair_them) {
         var peer = new Peer({ initiator: initiator, wrtc: wrtc });
 
         var signals = [];
-        
+
         peer.on("error", function(e) {
-            console.log(SIDE_1, "error", e );
+            console.log(SIDE_1, "error", e);
         });
-        
-        
+
+
         peer.on("close", function() {
             console.log(SIDE_1, "closed");
             connected = false;
         });
-        
+
         peer.on('signal', data => {
             // console.log(SIDE_1, data)
             // when peer1 has signaling data, give it to peer2 somehow
@@ -169,11 +178,12 @@ module.exports = function(initiator, pair_me, pair_them) {
             // wait for 'connect' event before using the data channel
             console.log("connected to", SIDE_2);
             connected = true;
-            
+
             var interval_id = setInterval(function() {
-                if(!connected){
+                if (!connected) {
                     clearInterval(interval_id);
-                }else
+                }
+                else
                     peer.send('hello ' + SIDE_2 + ', how is it going? ' + (new Date().getTime()));
             }, 1000);
 
@@ -183,8 +193,8 @@ module.exports = function(initiator, pair_me, pair_them) {
             // got a data channel message
             console.log('got a message from ' + SIDE_2 + ': ' + data);
         });
-        
+
         return peer;
     }
-    
+
 };
