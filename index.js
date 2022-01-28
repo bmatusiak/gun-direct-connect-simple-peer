@@ -198,10 +198,14 @@ module.exports = function(initiator, pair_me, pair_them) {
         peer.on('data', async data => {
             last_ping = new Date().getTime();
             
-            if (data.indexOf("SEA").toString("utf8") >= 0)
+            if(data instanceof Buffer)
+                data = data.toString("utf8")
+            
+            if (data.indexOf("SEA") >= 0)
                 data = await SEA.decrypt(data, await SEA.secret(pair_them.epub, pair_me));
-                     
-            data = JSON.parse(data);
+            
+            if(typeof data == "string")
+                data = JSON.parse(data);
             
             // got a data channel message
             console.log('got a message from ', SIDE_2 , data);
