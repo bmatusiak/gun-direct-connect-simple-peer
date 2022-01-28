@@ -169,8 +169,10 @@ module.exports = function(initiator, pair_me, pair_them) {
             console.log("connected to", SIDE_2)
             connected = true;
             
-            setInterval(function() {
-                if(connected)
+            var interval_id = setInterval(function() {
+                if(!connected){
+                    clearInterval(interval_id)
+                }else
                     peer.send('hello ' + SIDE_2 + ', how is it going? ' + (new Date().getTime()))
             }, 1000)
 
