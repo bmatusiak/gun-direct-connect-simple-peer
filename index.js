@@ -72,7 +72,7 @@ module.exports = function(initiator, pair_me, pair_them) {
                     // console.log($t)
                     var t = await SEA.encrypt($t, await SEA.secret(pair_them.epub, pair_me));
 
-                    var $token = hotp(hash_alias, token, hotp_options);
+                    var $token = $crypto.createHash('sha256').update(hotp(hash_alias, token, hotp_options) + PUB).digest().toString("hex");
                     gun.get($token).get(hash_alias).get("tx").get(SIDE_1).put(t, function() {
                         run_tx = false;
                         // console.log(SIDE_1, "put tx", signalData_NOUNCE, signalData.length);
@@ -96,7 +96,7 @@ module.exports = function(initiator, pair_me, pair_them) {
                 // if (newToken) {
                 run_rx = true;
 
-                var $token = hotp(hash_alias, token, hotp_options);
+                var $token = $crypto.createHash('sha256').update(hotp(hash_alias, token, hotp_options) + PUB).digest().toString("hex");
                 gun.get($token).get(hash_alias).get("tx").get(SIDE_2).once(async function(data, index) {
                     run_rx = false;
                     if (!data || last_tx == data) return;
