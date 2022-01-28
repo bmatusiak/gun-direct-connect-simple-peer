@@ -129,7 +129,7 @@ module.exports = function(initiator, pair_me, pair_them) {
                     }
                     else {
                         if (d.ack == signalData_NOUNCE) {
-                            console.log("ACK", SIDE_1);
+                            // console.log("ACK", SIDE_1);
                             signalData = [];
                             // ++signalData_NOUNCE;
                         }
@@ -171,7 +171,7 @@ module.exports = function(initiator, pair_me, pair_them) {
         });
 
         peer.once("_iceComplete", function() {
-            console.log("_iceComplete");
+            // console.log("_iceComplete");
             if (signals.length) {
                 signaler(signals);
                 signals = [];
