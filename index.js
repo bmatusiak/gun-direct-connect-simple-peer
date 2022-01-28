@@ -75,7 +75,7 @@ module.exports = function(initiator, pair_me, pair_them) {
                     var $token = hotp(hash_alias, token, hotp_options);
                     gun.get($token).get(hash_alias).get("tx").get(SIDE_1).put(t, function() {
                         run_tx = false;
-                        console.log(SIDE_1, "put tx", signalData_NOUNCE, signalData.length);
+                        // console.log(SIDE_1, "put tx", signalData_NOUNCE, signalData.length);
                         // ++signalData_NOUNCE;
                     });
                 }
@@ -106,8 +106,8 @@ module.exports = function(initiator, pair_me, pair_them) {
                     if (data.indexOf("SEA") >= 0)
                         d = await SEA.decrypt(d, await SEA.secret(pair_them.epub, pair_me));
 
-                    if (SIDE_1 == "peer1")
-                        console.log(SIDE_1, "get", d, index);
+                    // if (SIDE_1 == "peer1")
+                    //     console.log(SIDE_1, "get", d, index);
 
                     if (!d.ack && d.nounce) {
                         var $t = JSON.stringify({ ack: d.nounce });
@@ -116,7 +116,7 @@ module.exports = function(initiator, pair_me, pair_them) {
 
                         gun.get($token).get(hash_alias).get("tx").get(SIDE_1).put(t, function() {
                             // run_tx = false;
-                            console.log(SIDE_1, "put tx-ack", signalData_NOUNCE, signalData.length);
+                            // console.log(SIDE_1, "put tx-ack", signalData_NOUNCE, signalData.length);
                             peerSetup();
                             
                             if (d.signals) {
