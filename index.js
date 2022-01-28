@@ -2,8 +2,10 @@ module.exports = function(initiator, pair_me, pair_them) {
     var SIDE_1 = initiator ? "peer1" : "peer2";
     var SIDE_2 = initiator ? "peer2" : "peer1";
 
-    var hotp = require('hotp')
-    var GUN = require("./gun-connection.js")
+    var PUB = initiator ? pair_me.pub+pair_them.pub : pair_them.pub+pair_me.pub;
+    
+    var hotp = require('hotp');
+    var GUN = require("./gun-connection.js");
     var SEA = GUN.SEA;
 
     var $crypto = require('crypto');
@@ -25,8 +27,6 @@ module.exports = function(initiator, pair_me, pair_them) {
     var interval = 1000;
 
 
-    var run_tx = false;
-    var run_rx = false;
 
     var signalData = [];
     var signalData_NOUNCE = 0;
@@ -37,9 +37,10 @@ module.exports = function(initiator, pair_me, pair_them) {
     });
     
     
-    var PUB = initiator ? pair_me.pub+pair_them.pub : pair_them.pub+pair_me.pub;
                 
-    var last_tx, last_rx, lt_tx, lt_rx;
+    var last_tx,  lt_rx; //last_rx, lt_tx,
+    var run_tx = false;
+    var run_rx = false;
     setInterval(async function() {
 
 
@@ -50,7 +51,7 @@ module.exports = function(initiator, pair_me, pair_them) {
                 var hash_alias = $crypto.createHash('sha256').update(PUB).digest().toString("hex");
 
                 var newToken = false;
-                var token = parseInt(hotp.totp(hash_alias, topt_options))
+                var token = parseInt(hotp.totp(hash_alias, topt_options));
 
                 if (token != lt_rx) {
                     // console.log("new token", typeof token, token);
@@ -116,10 +117,10 @@ module.exports = function(initiator, pair_me, pair_them) {
                                     }
                                 }
                                 // ++signalData_NOUNCE;
-                            })
+                            });
                         }else{
                             if(d.ack == signalData_NOUNCE){
-                                console.log("ACK", SIDE_1)
+                                console.log("ACK", SIDE_1);
                                 signalData = [];
                                 // ++signalData_NOUNCE;
                             }
@@ -154,54 +155,36 @@ module.exports = function(initiator, pair_me, pair_them) {
             // putSignal(data)
             signals.push(data);
             // gun.get("simple-peer").get(hash_alias).get(SIDE_1).get("signal").get(signal_id).put(data_stringify(data))
-        })
+        });
 
         peer.once("_iceComplete", function() {
-            console.log("_iceComplete")
+            console.log("_iceComplete");
             if (signals.length) {
                 signaler(signals);
                 signals = [];
             }
-        })
+        });
 
         peer.on('connect', () => {
             // wait for 'connect' event before using the data channel
-            console.log("connected to", SIDE_2)
+            console.log("connected to", SIDE_2);
             connected = true;
             
             var interval_id = setInterval(function() {
                 if(!connected){
-                    clearInterval(interval_id)
+                    clearInterval(interval_id);
                 }else
-                    peer.send('hello ' + SIDE_2 + ', how is it going? ' + (new Date().getTime()))
-            }, 1000)
+                    peer.send('hello ' + SIDE_2 + ', how is it going? ' + (new Date().getTime()));
+            }, 1000);
 
-        })
+        });
 
         peer.on('data', data => {
             // got a data channel message
-            console.log('got a message from ' + SIDE_2 + ': ' + data)
-        })
+            console.log('got a message from ' + SIDE_2 + ': ' + data);
+        });
         
         return peer;
     }
-    // peer.on("error", console.log)
-
-
-
-    function data_stringify(data) {
-        return "JSON" + JSON.stringify(data);
-    }
-
-    function data_parse(data) {
-        if (data)
-            if (data.slice(0, 4) == "JSON") {
-                return JSON.parse(data.slice(4));
-            }
-        else {
-            return JSON.parse(data);
-        }
-    }
-
-    // console.log(gun);
-}
+    
+};
