@@ -133,12 +133,19 @@ module.exports = function(initiator, pair_me, pair_them) {
 
 
     function peer_factory(signaler) {
+        var connected = false;
         var peer = new Peer({ initiator: initiator, wrtc: wrtc });
 
         var signals = [];
         
+        peer.on("error", function(e) {
+            console.log(SIDE_1, "error", e );
+        });
+        
+        
         peer.on("close", function() {
             console.log(SIDE_1, "closed");
+            connected = false;
         });
         
         peer.on('signal', data => {
@@ -160,9 +167,11 @@ module.exports = function(initiator, pair_me, pair_them) {
         peer.on('connect', () => {
             // wait for 'connect' event before using the data channel
             console.log("connected to", SIDE_2)
-
+            connected = true;
+            
             setInterval(function() {
-                peer.send('hello ' + SIDE_2 + ', how is it going? ' + (new Date().getTime()))
+                if(connected)
+                    peer.send('hello ' + SIDE_2 + ', how is it going? ' + (new Date().getTime()))
             }, 1000)
 
         })
