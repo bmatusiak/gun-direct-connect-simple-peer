@@ -145,6 +145,9 @@ module.exports = function(initiator, pair_me, pair_them) {
     function peer_factory(signaler) {
         var connected = false;
         var peer = new Peer({ initiator: initiator, wrtc: wrtc });
+        
+        
+        var last_ping = 0;
 
         var signals = [];
 
@@ -184,15 +187,24 @@ module.exports = function(initiator, pair_me, pair_them) {
                     clearInterval(interval_id);
                 }
                 else
-                    peer.send('hello ' + SIDE_2 + ', how is it going? ' + (new Date().getTime()));
+                    peer.send(JSON.stringify({ ping: (new Date().getTime()) }) );
             }, 1000);
 
         });
 
         peer.on('data', data => {
+            last_ping = new Date().getTime();
+            data = JSON.parse(data);
+            
             // got a data channel message
-            console.log('got a message from ' + SIDE_2 + ': ' + data);
+            console.log('got a message from ', SIDE_2 , data);
         });
+        
+        var ping_interval = setInterval(function(){
+            if(connected){
+                
+            }
+        },1000)
 
         return peer;
     }
