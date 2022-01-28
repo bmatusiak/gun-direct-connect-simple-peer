@@ -2,10 +2,12 @@
 
 var GUN = require('gun');
 var SEA = require('gun/sea');
+var nts = require('gun/nts');
 
 
 module.exports = function(use_webserver) {
-
+    
+    use_webserver = false;
 
     var server = false;//require('http').createServer().listen(8765);
     if(use_webserver)
@@ -13,12 +15,17 @@ module.exports = function(use_webserver) {
             console.log("webserver listening")
         });
         
-    var  peers = ["https://peersocial.io/gun", "https://onlykey.herokuapp.com/gun", "https://gun-manhattan.herokuapp.com/gun"];
+    var  peers = ["https://www.peersocial.io/gun" , "https://onlykey.herokuapp.com/gun", "https://gun-manhattan.herokuapp.com/gun"];
     
-    if(!use_webserver)
-        peers.push("http://localhost:8765/gun" )
     
-    return GUN({ web: server, peers: peers });
+    // if(!use_webserver)
+    //     peers.push("http://localhost:8765/gun" )
+    var $g = GUN({ web: server, peers: peers });
+    
+    var mesh = $g.back('opt.mesh'); // DAM;
+    mesh.say({ dam: 'opt', opt: { peers: peers } });
+    
+    return $g
 
 };
 

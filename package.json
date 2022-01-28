@@ -9,7 +9,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "gun": "^0.2020.1235",
+    "gun": "git+https://github.com/amark/gun.git",
+    "hotp": "^3.0.0",
     "simple-peer": "^9.11.0",
     "wrtc": "^0.4.7"
   }
