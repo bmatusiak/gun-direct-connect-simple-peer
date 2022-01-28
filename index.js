@@ -203,7 +203,7 @@ module.exports = function(initiator, pair_me, pair_them) {
         var ping_interval = setInterval(function(){
             
             var check_last_ping = new Date().getTime();
-            if(connected){
+            if(connected && last_ping != 0){
                 var time_sense = check_last_ping - last_ping;
                 if(time_sense > (10* 1000))
                     console.log(time_sense)
