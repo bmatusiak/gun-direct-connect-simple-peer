@@ -1,4 +1,4 @@
-module.exports = function(options, hash, pair_me, pair_them) {
+module.exports = function(options, secret_hash, pair_me, pair_them) {
     var initiator = options.initiator;
     
     var EventEmitter = require('events');
@@ -11,7 +11,7 @@ module.exports = function(options, hash, pair_me, pair_them) {
     app_emitter.auth = function(auth_fn){
         auth = auth_fn;
     }
-    var PUB = hash; //initiator ? pair_me.pub + pair_them.pub : pair_them.pub + pair_me.pub;
+    // var PUB = hash; //initiator ? pair_me.pub + pair_them.pub : pair_them.pub + pair_me.pub;
     
     // var $log = console.log;
     // var $log = function(){};
@@ -80,6 +80,7 @@ module.exports = function(options, hash, pair_me, pair_them) {
     //catches uncaught exceptions
     process.on('uncaughtException', exitHandler.bind(null, { exit: true }));
 
+    var hash_alias = $crypto.createHash('sha256').update(secret_hash).digest().toString("hex");
 
     function peerSetup() {
 
@@ -101,7 +102,6 @@ module.exports = function(options, hash, pair_me, pair_them) {
 
         if (!run_tx && !peer.$connected) {
             (async function() {
-                var hash_alias = $crypto.createHash('sha256').update(PUB).digest().toString("hex");
 
                 var newToken = false;
                 var token = parseInt(hotp.totp(hash_alias, topt_options));
@@ -123,7 +123,7 @@ module.exports = function(options, hash, pair_me, pair_them) {
                         t = data_stringify($t);
                     }
 
-                    var $token = $crypto.createHash('sha256').update(hotp(hash_alias, token, hotp_options) + PUB).digest().toString("hex");
+                    var $token = $crypto.createHash('sha256').update(hotp(hash_alias, token, hotp_options) + secret_hash).digest().toString("hex");
                     gun.get($token).get(hash_alias).get("tx").get(SIDE_1).put(t, function() {
                         run_tx = false;
                         $log(SIDE_1, "put tx", t);
@@ -135,11 +135,9 @@ module.exports = function(options, hash, pair_me, pair_them) {
             run_rx = true;
 
             (async function() {
-                var hash_alias = $crypto.createHash('sha256').update(PUB).digest().toString("hex");
-
                 var token = parseInt(hotp.totp(hash_alias, topt_options));
 
-                var $token = $crypto.createHash('sha256').update(hotp(hash_alias, token, hotp_options) + PUB).digest().toString("hex");
+                var $token = $crypto.createHash('sha256').update(hotp(hash_alias, token, hotp_options) + secret_hash).digest().toString("hex");
                 gun.get($token).get(hash_alias).get("tx").get(SIDE_2).once(async function(data, index) {
                     run_rx = false;
                     if (!data || last_tx == data) {
@@ -168,9 +166,7 @@ module.exports = function(options, hash, pair_me, pair_them) {
                         var $t, t;
                         var doAck = function(){
                             var token = parseInt(hotp.totp(hash_alias, topt_options));
-
-                            var $token = $crypto.createHash('sha256').update(hotp(hash_alias, token, hotp_options) + PUB).digest().toString("hex");
-                            
+                            var $token = $crypto.createHash('sha256').update(hotp(hash_alias, token, hotp_options) + secret_hash).digest().toString("hex");
                             
                             if (t)
                                 gun.get($token).get(hash_alias).get("tx").get(SIDE_1).put(t, function() {
@@ -183,7 +179,7 @@ module.exports = function(options, hash, pair_me, pair_them) {
                                         }
                                     }
                                 });
-                        }
+                        };
                         if (d.signals && msg_decrypted) {
                             $t = JSON.stringify({ ack: 1, clear: true });
                             t = await SEA.encrypt($t, await SEA.secret(peer.pair.epub, pair_me));
@@ -195,12 +191,12 @@ module.exports = function(options, hash, pair_me, pair_them) {
                                 $t = JSON.stringify({ ack: 1, pair: { pub: pair_me.pub, epub: pair_me.epub } });
                                 t = data_stringify($t);
                                 doAck();
-                            }
+                            };
                             
                             if(!auth){
                                 complete_ack();
                             }else
-                                auth(d.pair,complete_ack)
+                                auth(d.pair,complete_ack);
                                 
                         }
 

@@ -1,4 +1,4 @@
-var hash = "igSBrdYKihT4nD5ggix/U4Snrpk+NjDT05xCZXK8=2345678912345678901";
+var secret_hash = "igSBrdYKihT4nD5ggix/U4Snrpk+NjDT05xCZXK8=2345678912345678901";
 
 ;
 (async function() {
@@ -37,10 +37,10 @@ var hash = "igSBrdYKihT4nD5ggix/U4Snrpk+NjDT05xCZXK8=2345678912345678901";
 
     var gunDC;
     if (process.env.INITIATOR) {
-        gunDC = require("./index.js")({ wrtc: wrtc, initiator: true, gun: gun, GUN: GUN }, hash, pair_slave);
+        gunDC = require("./index.js")({ wrtc: wrtc, initiator: true, gun: gun, GUN: GUN }, secret_hash, pair_slave);
     }
     else {
-        gunDC = require("./index.js")({ wrtc: wrtc, initiator: false, gun: gun, GUN: GUN }, hash, pair_master);
+        gunDC = require("./index.js")({ wrtc: wrtc, initiator: false, gun: gun, GUN: GUN }, secret_hash, pair_master);
     }
 
     gunDC.on("connected", function(socket) {
@@ -57,24 +57,26 @@ var hash = "igSBrdYKihT4nD5ggix/U4Snrpk+NjDT05xCZXK8=2345678912345678901";
         socket.emit("test", process.env.INITIATOR || false);
     });
 
-    gunDC.auth(function(pair, pass) {
-        console.log("auth", pair)
-        if (enforce_pair) {
-            if (gunDC.initiator) {
-                if (pair.epub == pair_master.epub) {
-                    pass();
-                }
-            }
-            else {
-                if (pair.epub == pair_slave.epub) {
-                    pass();
-                }
-            }
-        }else{
-            pass();
-        }
 
-    })
+    if (enforce_pair)
+        gunDC.auth(function(pair, pass) {
+            console.log("auth", pair)
+            // if (enforce_pair) {
+                if (gunDC.initiator) {
+                    if (pair.epub == pair_master.epub) {
+                        pass();
+                    }
+                }
+                else {
+                    if (pair.epub == pair_slave.epub) {
+                        pass();
+                    }
+                }
+            // }else{
+            //     pass();
+            // }
+    
+        })
 
     gunDC.on("debug", console.log)
 })();
