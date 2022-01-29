@@ -18,7 +18,7 @@
     if (!enforce_pair) {
         pair_master = await SEA.pair();
         pair_slave = await SEA.pair();
-        secret_hash = await SEA.secret(pair_slave.epub, pair_master)
+        secret_hash = "igSBrdYKihT4nD5ggix/U4Snrpk+NjDT05xCZXK8=2345678912345678901"; // pre-determin key
     }
     else {
         pair_master = {
@@ -52,9 +52,20 @@
         socket.on("test", function(val) {
             console.log("test", val);
         });
+        
+        var sendInt = setInterval(function(){
+            
+            socket.emit("time", new Date().getTime());
+            
+        },1000)
+        
+        socket.on("time", function(val) {
+            console.log("time from socket", val);
+        });
 
         socket.on("disconnected", function() {
             console.log("socket disconnected", );
+            clearInterval(sendInt);
         });
 
         socket.emit("test", process.env.INITIATOR || false);
@@ -81,5 +92,5 @@
     
         });
 
-    gunDC.on("debug", console.log)
+    // gunDC.on("debug", console.log)
 })();
