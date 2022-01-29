@@ -38,7 +38,8 @@ var hash = "igSBrdYKihT4nD5ggix/U4Snrpk+NjDT05xCZXK8=2345678912345678901";
     }
 
     gunDC.on("connected", function(socket) {
-
+        console.log("connected");
+        
         socket.on("test", function(val) {
             console.log("test", val);
         });
@@ -49,5 +50,6 @@ var hash = "igSBrdYKihT4nD5ggix/U4Snrpk+NjDT05xCZXK8=2345678912345678901";
 
         socket.emit("test", process.env.INITIATOR || false);
     });
-
+    
+    gunDC.on("log",console.log)
 })();
