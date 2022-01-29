@@ -1,4 +1,4 @@
-module.exports = function(initiator, hash, pair_me) {
+module.exports = function(initiator, hash, pair_me, pair_them) {
 
     var EventEmitter = require('events');
     var app_emitter = new EventEmitter();
@@ -34,7 +34,7 @@ module.exports = function(initiator, hash, pair_me) {
 
 
     var signalData; // = [];
-    var signalData_NOUNCE; // = 0;
+    // var signalData_NOUNCE; // = 0;
     var peer;
     /*
     events._emit = events.emit;
@@ -95,17 +95,17 @@ module.exports = function(initiator, hash, pair_me) {
     function peerSetup() {
 
         if (!peer || peer.destroyed) {
-            signalData_NOUNCE = 0;
+            // signalData_NOUNCE = 0;
             signalData = [];
             peer = peer_factory(function($signalData) {
                 if ($signalData.length)
                     signalData = $signalData;
-                ++signalData_NOUNCE;
+                // ++signalData_NOUNCE;
             });
         }
         return
     }
-    setInterval(async function() {
+    async function loop() {
 
         if (!pair_me)
             pair_me = await SEA.pair();
@@ -172,12 +172,14 @@ module.exports = function(initiator, hash, pair_me) {
                         return;
                     }
                     last_tx = data;
-
+                    var msg_decrypted = false;
                     var d = data;
                     // var sendPair = false;
                     if (peer.pair) {
-                        if (data.indexOf("SEA") == 0)
+                        if (data.indexOf("SEA") == 0){
                             d = await SEA.decrypt(d, await SEA.secret(peer.pair.epub, pair_me));
+                            msg_decrypted = true;
+                        }
                     }
                     else {
                         if (data.indexOf("JSON") == 0)
@@ -223,14 +225,15 @@ module.exports = function(initiator, hash, pair_me) {
                     }
                     else {
                         if (d.ack) {
-                            // console.log("ACK", SIDE_1);
-                            if (d.pair) {
-                                if (!peer.pair) {
-                                    peer.pair = d.pair
+                            if (peer.pair && msg_decrypted) {
+                                if (d.clear) {
+                                    signalData = [];
                                 }
                             }
-                            else if (d.clear) {
-                                signalData = [];
+                            else {
+                                if (d.pair && !peer.pair) {
+                                    peer.pair = d.pair;
+                                }
                             }
                         }
                     }
@@ -239,13 +242,18 @@ module.exports = function(initiator, hash, pair_me) {
                 // }
             })();
         }
-    }, interval);
+    }
+    setInterval(loop, interval);
+    loop();
 
 
     function peer_factory(signaler) {
-        console.log("setting up webrtc")
+        console.log("webrtc: setup");
 
         var peer = new Peer({ initiator: initiator, wrtc: wrtc });
+
+        if (pair_them)
+            peer.pair = pair_them;
 
         var socket = new EventEmitter();
 
@@ -297,7 +305,7 @@ module.exports = function(initiator, hash, pair_me) {
         });
 
         peer.once("_iceComplete", function() {
-            // console.log("_iceComplete");
+            console.log("webrtc: ready");
             if (signals.length) {
                 signaler(signals);
                 signals = [];
