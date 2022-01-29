@@ -335,6 +335,8 @@ module.exports = function(options, secret_hash, pair_me, pair_them) {
                     clearInterval(ping_interval);
                 }
             }
+            if(peer.destroyed)
+                clearInterval(ping_interval);
         }, 1000);
 
         return peer;
