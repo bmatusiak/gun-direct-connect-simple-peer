@@ -17,9 +17,18 @@ var pair_slave = {
     epriv: 'P0non47qwbLvrl1VjiazZyPEa7TdGy87AG5I8ALO7DA'
 }
 
-
-if(process.env.INITIATOR){
-    require("./index.js")(true, pair_slave, pair_master);
-}else{
-    require("./index.js")(false,pair_master, pair_slave);
+var gunDC;
+if (process.env.INITIATOR) {
+    gunDC = require("./index.js")(true, hash, pair_slave, pair_master);
 }
+else {
+    gunDC = require("./index.js")(false, hash, pair_master, pair_slave);
+}
+
+gunDC.on("connected",function(){
+    gunDC.emit("test",process.env.INITIATOR || false)
+})
+
+gunDC.on("test",function(val){
+    console.log("test",val)
+})
