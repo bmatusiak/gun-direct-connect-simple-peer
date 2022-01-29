@@ -81,5 +81,5 @@
     
         });
 
-    // gunDC.on("debug", console.log)
+    gunDC.on("debug", console.log)
 })();
