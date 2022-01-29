@@ -19,16 +19,17 @@ var pair_slave = {
 
 var gunDC;
 if (process.env.INITIATOR) {
-    gunDC = require("./index.js")(true, hash, pair_slave, pair_master);
+    gunDC = require("./index.js")(true, hash, pair_slave);
 }
 else {
-    gunDC = require("./index.js")(false, hash, pair_master, pair_slave);
+    gunDC = require("./index.js")(false, hash, pair_master);
 }
 
-gunDC.on("connected",function(){
-    gunDC.emit("test",process.env.INITIATOR || false)
-})
+gunDC.on("connected",function(socket){
+    
+    socket.on("test",function(val){
+        console.log("test",val);
+    });
 
-gunDC.on("test",function(val){
-    console.log("test",val)
-})
+    socket.emit("test",process.env.INITIATOR || false);
+});
