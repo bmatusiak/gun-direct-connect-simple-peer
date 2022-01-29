@@ -43,6 +43,10 @@ var hash = "igSBrdYKihT4nD5ggix/U4Snrpk+NjDT05xCZXK8=2345678912345678901";
             console.log("test", val);
         });
 
+        socket.on("disconnected", function() {
+            console.log("socket disconnected", );
+        });
+
         socket.emit("test", process.env.INITIATOR || false);
     });
 

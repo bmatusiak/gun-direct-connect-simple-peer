@@ -290,10 +290,11 @@ module.exports = function(initiator, hash, pair_me, pair_them) {
 
 
         peer.on("close", function() {
+            if(peer.$connected)
+                socket._emit("disconnected");
+                
             console.log(SIDE_1, "closed");
             peer.$connected = false;
-
-            socket.emit("disconnected");
         });
 
         peer.on('signal', data => {
