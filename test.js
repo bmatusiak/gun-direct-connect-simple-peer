@@ -1,7 +1,4 @@
-var secret_hash = "igSBrdYKihT4nD5ggix/U4Snrpk+NjDT05xCZXK8=2345678912345678901";
-
-;
-(async function() {
+;(async function() {
 
     var GUN = require('gun');
     var SEA = require('gun/sea');
@@ -14,11 +11,14 @@ var secret_hash = "igSBrdYKihT4nD5ggix/U4Snrpk+NjDT05xCZXK8=2345678912345678901"
     var pair_master;
     var pair_slave;
 
-    var enforce_pair = false;
-
+    var enforce_pair = true;
+    
+    var secret_hash;
+    
     if (!enforce_pair) {
         pair_master = await SEA.pair();
         pair_slave = await SEA.pair();
+        secret_hash = await SEA.secret(pair_slave.epub, pair_master)
     }
     else {
         pair_master = {
@@ -33,7 +33,10 @@ var secret_hash = "igSBrdYKihT4nD5ggix/U4Snrpk+NjDT05xCZXK8=2345678912345678901"
             epub: 'dgO6ExzCTZfP8jHVx2lgUpMWYHt5nZWvUcbW76w2s20.p1Iu2FYUxI7A-tAGhkmdiT9SJJq4Zlafg9FG1KnFoZU',
             epriv: 'P0non47qwbLvrl1VjiazZyPEa7TdGy87AG5I8ALO7DA'
         };
+        secret_hash = await SEA.secret(pair_slave.epub, pair_master)
     }
+    
+    
 
     var gunDC;
     if (process.env.INITIATOR) {
