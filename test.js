@@ -32,7 +32,7 @@ var secret_hash = "igSBrdYKihT4nD5ggix/U4Snrpk+NjDT05xCZXK8=2345678912345678901"
             priv: 'yQgGsG6Yefy0sLW5_vpIYeV3UycpObI0NrHpJSxemvo',
             epub: 'dgO6ExzCTZfP8jHVx2lgUpMWYHt5nZWvUcbW76w2s20.p1Iu2FYUxI7A-tAGhkmdiT9SJJq4Zlafg9FG1KnFoZU',
             epriv: 'P0non47qwbLvrl1VjiazZyPEa7TdGy87AG5I8ALO7DA'
-        }
+        };
     }
 
     var gunDC;
@@ -60,7 +60,7 @@ var secret_hash = "igSBrdYKihT4nD5ggix/U4Snrpk+NjDT05xCZXK8=2345678912345678901"
 
     if (enforce_pair)
         gunDC.auth(function(pair, pass) {
-            console.log("auth", pair)
+            console.log("auth", pair);
             // if (enforce_pair) {
                 if (gunDC.initiator) {
                     if (pair.epub == pair_master.epub) {
@@ -76,7 +76,7 @@ var secret_hash = "igSBrdYKihT4nD5ggix/U4Snrpk+NjDT05xCZXK8=2345678912345678901"
             //     pass();
             // }
     
-        })
+        });
 
-    gunDC.on("debug", console.log)
+    // gunDC.on("debug", console.log)
 })();
