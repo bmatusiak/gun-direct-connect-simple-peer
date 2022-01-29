@@ -1,6 +1,7 @@
 var hash = "igSBrdYKihT4nD5ggix/U4Snrpk+NjDT05xCZXK8=2345678912345678901";
 
-;(async function() {
+;
+(async function() {
 
     var GUN = require('gun');
     var SEA = require('gun/sea');
@@ -8,7 +9,7 @@ var hash = "igSBrdYKihT4nD5ggix/U4Snrpk+NjDT05xCZXK8=2345678912345678901";
     var pair_master;
     var pair_slave;
 
-    var enforce_pair = true;
+    var enforce_pair = false;
 
     if (!enforce_pair) {
         pair_master = await SEA.pair();
@@ -28,18 +29,18 @@ var hash = "igSBrdYKihT4nD5ggix/U4Snrpk+NjDT05xCZXK8=2345678912345678901";
             epriv: 'P0non47qwbLvrl1VjiazZyPEa7TdGy87AG5I8ALO7DA'
         }
     }
-    
+
     var gunDC;
     if (process.env.INITIATOR) {
-        gunDC = require("./index.js")(true, hash, pair_slave, enforce_pair ? pair_master : false);
+        gunDC = require("./index.js")({ initiator: true }, hash, pair_slave, enforce_pair ? pair_master : false);
     }
     else {
-        gunDC = require("./index.js")(false, hash, pair_master, enforce_pair ? pair_slave : false);
+        gunDC = require("./index.js")({ initiator: false }, hash, pair_master, enforce_pair ? pair_slave : false);
     }
 
     gunDC.on("connected", function(socket) {
         console.log("connected");
-        
+
         socket.on("test", function(val) {
             console.log("test", val);
         });
@@ -50,6 +51,6 @@ var hash = "igSBrdYKihT4nD5ggix/U4Snrpk+NjDT05xCZXK8=2345678912345678901";
 
         socket.emit("test", process.env.INITIATOR || false);
     });
-    
-    gunDC.on("log",console.log)
+
+    gunDC.on("debug", console.log)
 })();

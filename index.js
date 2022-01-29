@@ -1,5 +1,6 @@
-module.exports = function(initiator, hash, pair_me, pair_them) {
-
+module.exports = function(options, hash, pair_me, pair_them) {
+    var initiator = options.initiator;
+    
     var EventEmitter = require('events');
     var app_emitter = new EventEmitter();
     var SIDE_1 = initiator ? "peer1" : "peer2";
@@ -9,7 +10,7 @@ module.exports = function(initiator, hash, pair_me, pair_them) {
     
     // var $log = console.log;
     // var $log = function(){};
-    var $log = app_emitter.emit.bind(app_emitter, "log");
+    var $log = app_emitter.emit.bind(app_emitter, "debug");
     
     // $log(SIDE_1, PUB)
 
