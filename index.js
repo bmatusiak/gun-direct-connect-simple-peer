@@ -5,7 +5,12 @@ module.exports = function(options, hash, pair_me, pair_them) {
     var app_emitter = new EventEmitter();
     var SIDE_1 = initiator ? "peer1" : "peer2";
     var SIDE_2 = initiator ? "peer2" : "peer1";
-
+    
+    app_emitter.initiator = initiator;
+    var auth = false;
+    app_emitter.auth = function(auth_fn){
+        auth = auth_fn;
+    }
     var PUB = hash; //initiator ? pair_me.pub + pair_them.pub : pair_them.pub + pair_me.pub;
     
     // var $log = console.log;
@@ -15,22 +20,26 @@ module.exports = function(options, hash, pair_me, pair_them) {
     // $log(SIDE_1, PUB)
 
     var hotp = require('hotp');
-    var GUN = require("./gun-connection.js");
+    // var GUN = require("./gun-connection.js");
+    var GUN = options.GUN;
     var SEA = GUN.SEA;
 
     var $crypto = require('crypto');
 
     var Peer = require('simple-peer');
-    var wrtc = require('wrtc');
+    // var wrtc = require('wrtc');
+    var wrtc = options.wrtc;
 
-    var gun = GUN(!initiator);
+    // var gun = GUN(!initiator);
+    var gun = options.gun;
+    
 
     var topt_options = {
         timeStep: 5,
         algorithm: "sha256",
         digits: 8,
         get time() {
-            return new Date(GUN.GUN.state()).getTime() / 1000;
+            return new Date(GUN.state()).getTime() / 1000;
         }
     };
     var hotp_options = { algorithm: topt_options.algorithm, digits: topt_options.digits };
@@ -157,27 +166,45 @@ module.exports = function(options, hash, pair_me, pair_them) {
 
                     if (!d.ack) {
                         var $t, t;
+                        var doAck = function(){
+                            var token = parseInt(hotp.totp(hash_alias, topt_options));
+
+                            var $token = $crypto.createHash('sha256').update(hotp(hash_alias, token, hotp_options) + PUB).digest().toString("hex");
+                            
+                            
+                            if (t)
+                                gun.get($token).get(hash_alias).get("tx").get(SIDE_1).put(t, function() {
+                                    $log(SIDE_1, "put tx-ack", $t);
+                                    peerSetup();
+    
+                                    if (d.signals) {
+                                        for (var i in d.signals) {
+                                            peer.signal(d.signals[i]);
+                                        }
+                                    }
+                                });
+                        }
                         if (d.signals && msg_decrypted) {
                             $t = JSON.stringify({ ack: 1, clear: true });
                             t = await SEA.encrypt($t, await SEA.secret(peer.pair.epub, pair_me));
+                            doAck();
                         }
                         else if (d.pair && !peer.pair) {
-                            peer.pair = d.pair;
-                            $t = JSON.stringify({ ack: 1, pair: { pub: pair_me.pub, epub: pair_me.epub } });
-                            t = data_stringify($t);
+                            var complete_ack = function(){
+                                peer.pair = d.pair;
+                                $t = JSON.stringify({ ack: 1, pair: { pub: pair_me.pub, epub: pair_me.epub } });
+                                t = data_stringify($t);
+                                doAck();
+                            }
+                            
+                            if(!auth){
+                                complete_ack();
+                            }else
+                                auth(d.pair,complete_ack)
+                                
                         }
 
-                        if (t)
-                            gun.get($token).get(hash_alias).get("tx").get(SIDE_1).put(t, function() {
-                                $log(SIDE_1, "put tx-ack", $t);
-                                peerSetup();
-
-                                if (d.signals) {
-                                    for (var i in d.signals) {
-                                        peer.signal(d.signals[i]);
-                                    }
-                                }
-                            });
+                        
                     }
                     else {
                         if (d.ack) {

@@ -5,11 +5,16 @@ var hash = "igSBrdYKihT4nD5ggix/U4Snrpk+NjDT05xCZXK8=2345678912345678901";
 
     var GUN = require('gun');
     var SEA = require('gun/sea');
+    var wrtc = require('wrtc');
+
+    var peers = ["https://www.peersocial.io/gun", "https://onlykey.herokuapp.com/gun", "https://gun-manhattan.herokuapp.com/gun"];
+
+    var gun = GUN({ peers: peers });
 
     var pair_master;
     var pair_slave;
 
-    var enforce_pair = false;
+    var enforce_pair = true;
 
     if (!enforce_pair) {
         pair_master = await SEA.pair();
@@ -32,10 +37,10 @@ var hash = "igSBrdYKihT4nD5ggix/U4Snrpk+NjDT05xCZXK8=2345678912345678901";
 
     var gunDC;
     if (process.env.INITIATOR) {
-        gunDC = require("./index.js")({ initiator: true }, hash, pair_slave, enforce_pair ? pair_master : false);
+        gunDC = require("./index.js")({ wrtc: wrtc, initiator: true, gun: gun, GUN: GUN }, hash, pair_slave);
     }
     else {
-        gunDC = require("./index.js")({ initiator: false }, hash, pair_master, enforce_pair ? pair_slave : false);
+        gunDC = require("./index.js")({ wrtc: wrtc, initiator: false, gun: gun, GUN: GUN }, hash, pair_master);
     }
 
     gunDC.on("connected", function(socket) {
@@ -51,6 +56,25 @@ var hash = "igSBrdYKihT4nD5ggix/U4Snrpk+NjDT05xCZXK8=2345678912345678901";
 
         socket.emit("test", process.env.INITIATOR || false);
     });
+
+    gunDC.auth(function(pair, pass) {
+        console.log("auth", pair)
+        if (enforce_pair) {
+            if (gunDC.initiator) {
+                if (pair.epub == pair_master.epub) {
+                    pass();
+                }
+            }
+            else {
+                if (pair.epub == pair_slave.epub) {
+                    pass();
+                }
+            }
+        }else{
+            pass();
+        }
+
+    })
 
     gunDC.on("debug", console.log)
 })();
