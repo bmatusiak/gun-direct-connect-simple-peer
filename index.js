@@ -199,7 +199,7 @@ module.exports = function(initiator, hash, pair_me, pair_them) {
                         //     pair_them = d.pair
                         // }
 
-                        if (d.signals) {
+                        if (d.signals && msg_decrypted) {
                             $t = JSON.stringify({ ack: 1, clear: true });
                             t = await SEA.encrypt($t, await SEA.secret(peer.pair.epub, pair_me));
                         }
