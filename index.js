@@ -111,7 +111,7 @@ module.exports = function(options, secret_hash, pair_me, pair_them) {
                     lt_rx = token;
                 }
                 if (newToken && signalData.length) {
-                    $log("new token with data")
+                    $log("new token with data");
                     run_tx = true;
                     var $t, t;
                     if (peer.pair) {
@@ -211,7 +211,13 @@ module.exports = function(options, secret_hash, pair_me, pair_them) {
                             }
                             else {
                                 if (d.pair && !peer.pair) {
-                                    peer.pair = d.pair;
+                                    if(!auth){
+                                        peer.pair = d.pair;
+                                    }else{
+                                        auth(d.pair, function(){
+                                            peer.pair = d.pair;
+                                        })
+                                    }
                                 }
                             }
                         }
