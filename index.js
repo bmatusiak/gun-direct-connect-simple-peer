@@ -10,7 +10,7 @@ module.exports = function(options, secret_hash, pair_me, pair_them) {
     var auth = false;
     app_emitter.auth = function(auth_fn){
         auth = auth_fn;
-    }
+    };
     // var PUB = hash; //initiator ? pair_me.pub + pair_them.pub : pair_them.pub + pair_me.pub;
     
     // var $log = console.log;
