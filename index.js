@@ -11,29 +11,22 @@ module.exports = function(options, secret_hash, pair_me, pair_them) {
     app_emitter.auth = function(auth_fn){
         auth = auth_fn;
     };
-    // var PUB = hash; //initiator ? pair_me.pub + pair_them.pub : pair_them.pub + pair_me.pub;
     
-    // var $log = console.log;
-    // var $log = function(){};
     var $log = app_emitter.emit.bind(app_emitter, "debug");
     
-    // $log(SIDE_1, PUB)
-
+    
     var hotp = require('hotp');
-    // var GUN = require("./gun-connection.js");
+    
     var GUN = options.GUN;
     var SEA = GUN.SEA;
 
     var $crypto = require('crypto');
 
     var Peer = require('simple-peer');
-    // var wrtc = require('wrtc');
+    
     var wrtc = options.wrtc;
-
-    // var gun = GUN(!initiator);
     var gun = options.gun;
     
-
     var topt_options = {
         timeStep: 5,
         algorithm: "sha256",

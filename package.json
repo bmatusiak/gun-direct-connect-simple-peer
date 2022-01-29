@@ -9,9 +9,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "gun": "git+https://github.com/amark/gun.git",
     "hotp": "^3.0.0",
-    "simple-peer": "^9.11.0",
+    "simple-peer": "^9.11.0"
+  },
+  "devDependencies": {
+    "gun": "git+https://github.com/amark/gun.git",
     "wrtc": "^0.4.7"
   }
 }

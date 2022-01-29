@@ -14,7 +14,7 @@ var secret_hash = "igSBrdYKihT4nD5ggix/U4Snrpk+NjDT05xCZXK8=2345678912345678901"
     var pair_master;
     var pair_slave;
 
-    var enforce_pair = true;
+    var enforce_pair = false;
 
     if (!enforce_pair) {
         pair_master = await SEA.pair();
