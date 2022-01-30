@@ -69,6 +69,12 @@
         });
 
         socket.emit("test", process.env.INITIATOR || false);
+        
+        setTimeout(function(){
+            if(gunDC.initiator)
+                gunDC.destroy();
+        },10 * 1000);
+        
     });
 
 
@@ -93,4 +99,5 @@
         });
 
     gunDC.on("debug", console.log)
+    
 })();

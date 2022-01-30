@@ -1,32 +1,32 @@
 module.exports = function(options, secret_hash, pair_me, pair_them) {
     var initiator = options.initiator;
-    
+
     var EventEmitter = require('events');
     var app_emitter = new EventEmitter();
     var SIDE_1 = initiator ? "peer1" : "peer2";
     var SIDE_2 = initiator ? "peer2" : "peer1";
-    
+
     app_emitter.initiator = initiator;
     var auth = false;
-    app_emitter.auth = function(auth_fn){
+    app_emitter.auth = function(auth_fn) {
         auth = auth_fn;
     };
-    
+
     var $log = app_emitter.emit.bind(app_emitter, "debug");
-    
-    
+
+
     var hotp = require('hotp');
-    
+
     var GUN = options.GUN;
     var SEA = GUN.SEA;
 
     var $crypto = require('crypto');
 
     var Peer = require('simple-peer');
-    
+
     var wrtc = options.wrtc;
     var gun = options.gun;
-    
+
     var topt_options = {
         timeStep: 5,
         algorithm: "sha256",
@@ -40,9 +40,9 @@ module.exports = function(options, secret_hash, pair_me, pair_them) {
 
 
 
-    var signalData; 
+    var signalData;
     var peer;
-    var last_tx, lt_rx; 
+    var last_tx, lt_rx;
     var run_tx = false;
     var run_rx = false;
 
@@ -157,15 +157,15 @@ module.exports = function(options, secret_hash, pair_me, pair_them) {
 
                     if (!d.ack) {
                         var $t, t;
-                        var doAck = function(){
+                        var doAck = function() {
                             var token = parseInt(hotp.totp(hash_alias, topt_options));
                             var $token = $crypto.createHash('sha256').update(hotp(hash_alias, token, hotp_options) + secret_hash).digest().toString("hex");
-                            
+
                             if (t)
                                 gun.get($token).get(hash_alias).get("tx").get(SIDE_1).put(t, function() {
                                     $log(SIDE_1, "put tx-ack", $t);
                                     peerSetup();
-    
+
                                     if (d.signals) {
                                         for (var i in d.signals) {
                                             peer.signal(d.signals[i]);
@@ -179,21 +179,22 @@ module.exports = function(options, secret_hash, pair_me, pair_them) {
                             doAck();
                         }
                         else if (d.pair && !peer.pair) {
-                            var complete_ack = function(){
+                            var complete_ack = function() {
                                 peer.pair = d.pair;
                                 $t = JSON.stringify({ ack: 1, pair: { pub: pair_me.pub, epub: pair_me.epub } });
                                 t = data_stringify($t);
                                 doAck();
                             };
-                            
-                            if(!auth){
+
+                            if (!auth) {
                                 complete_ack();
-                            }else
-                                auth(d.pair,complete_ack);
-                                
+                            }
+                            else
+                                auth(d.pair, complete_ack);
+
                         }
 
-                        
+
                     }
                     else {
                         if (d.ack) {
@@ -204,10 +205,11 @@ module.exports = function(options, secret_hash, pair_me, pair_them) {
                             }
                             else {
                                 if (d.pair && !peer.pair) {
-                                    if(!auth){
+                                    if (!auth) {
                                         peer.pair = d.pair;
-                                    }else{
-                                        auth(d.pair, function(){
+                                    }
+                                    else {
+                                        auth(d.pair, function() {
                                             peer.pair = d.pair;
                                         })
                                     }
@@ -220,7 +222,7 @@ module.exports = function(options, secret_hash, pair_me, pair_them) {
             })();
         }
     }
-    setInterval(loop, interval);
+    var mainLoopInt = setInterval(loop, interval);
     setTimeout(loop, 10);
 
 
@@ -335,12 +337,28 @@ module.exports = function(options, secret_hash, pair_me, pair_them) {
                     clearInterval(ping_interval);
                 }
             }
-            if(peer.destroyed)
+            if (peer.destroyed)
                 clearInterval(ping_interval);
         }, 1000);
 
         return peer;
     }
+
+    app_emitter.destroy = function() {
+        clearInterval(mainLoopInt);
+        if (peer) {
+            peer.socket.emit("closing");
+            setTimeout(async function() { 
+                peer.destroy(); 
+                peer = null;
+                signalData = null;
+                last_tx = null;
+                lt_rx = null;
+                run_tx = null;
+                run_rx = null;
+            }, 1000);
+        }
+    };
 
     return app_emitter;
 };
