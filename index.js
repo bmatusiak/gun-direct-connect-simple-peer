@@ -291,7 +291,7 @@ module.exports = function(options, secret_hash, pair_me, pair_them) {
             peer.$connected = true;
 
             var interval_id = setInterval(async function() {
-                if (!peer.$connected) {
+                if (!peer.$connected || peer.destroyed) {
                     clearInterval(interval_id);
                 }
                 else {
