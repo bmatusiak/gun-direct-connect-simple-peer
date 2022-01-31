@@ -46,32 +46,7 @@ module.exports = function(options, secret_hash, pair_me, pair_them) {
     var run_tx = false;
     var run_rx = false;
 /*
-    process.stdin.resume(); //so the program will not close instantly
-
-    function exitHandler(options, exitCode) {
-        // if (options.cleanup){
-        //   $log('clean');
-        // } 
-        // if (exitCode || exitCode === 0) $log("exitCode",exitCode);
-        if (options.exit) {
-            if (peer)
-                peer.socket.emit("closing");
-            setTimeout(async function() { process.exit(); }, 1000);
-        }
-    }
-
-    //do something when app is closing
-    process.on('exit', exitHandler.bind(null, { cleanup: true }));
-
-    //catches ctrl+c event
-    process.on('SIGINT', exitHandler.bind(null, { exit: true }));
-
-    // catches "kill pid" (for example: nodemon restart)
-    process.on('SIGUSR1', exitHandler.bind(null, { exit: true }));
-    process.on('SIGUSR2', exitHandler.bind(null, { exit: true }));
-
-    //catches uncaught exceptions
-    process.on('uncaughtException', exitHandler.bind(null, { exit: true }));
+    
 */
     var hash_alias = $crypto.createHash('sha256').update(secret_hash).digest().toString("hex");
 
