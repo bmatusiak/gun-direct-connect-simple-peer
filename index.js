@@ -355,4 +355,4 @@
             return JSON.parse(data);
         }
     }
-})(module ? module : { set exports(module) {window.GUNDC = module} });
+})(typeof module == "undefined" ? { set exports(module) {window.GUNDC = module} } : module);
