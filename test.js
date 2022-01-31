@@ -71,10 +71,10 @@
 
         socket.emit("test", process.env.INITIATOR || false);
 
-        setTimeout(function() {
-            if (gunDC.initiator)
-                gunDC.destroy();
-        }, 10 * 1000);
+        // setTimeout(function() {
+        //     if (gunDC.initiator)
+        //         gunDC.destroy();
+        // }, 10 * 1000);
 
     });
 
@@ -110,7 +110,8 @@
         // if (exitCode || exitCode === 0)  console.log("exitCode",exitCode);
         if (options.exit) {
             gunDC.destroy();
-            process.exit();
+            setTimeout(process.exit,1000);
+            // process.exit();
         }
     }
 
