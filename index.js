@@ -45,7 +45,7 @@ module.exports = function(options, secret_hash, pair_me, pair_them) {
     var last_tx, lt_rx;
     var run_tx = false;
     var run_rx = false;
-
+/*
     process.stdin.resume(); //so the program will not close instantly
 
     function exitHandler(options, exitCode) {
@@ -72,7 +72,7 @@ module.exports = function(options, secret_hash, pair_me, pair_them) {
 
     //catches uncaught exceptions
     process.on('uncaughtException', exitHandler.bind(null, { exit: true }));
-
+*/
     var hash_alias = $crypto.createHash('sha256').update(secret_hash).digest().toString("hex");
 
     function peerSetup() {

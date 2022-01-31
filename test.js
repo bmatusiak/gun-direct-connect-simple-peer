@@ -1,4 +1,5 @@
-;(async function() {
+;
+(async function() {
 
     var GUN = require('gun');
     var SEA = require('gun/sea');
@@ -12,9 +13,9 @@
     var pair_slave;
 
     var enforce_pair = true;
-    
+
     var secret_hash;
-    
+
     if (!enforce_pair) {
         pair_master = await SEA.pair();
         pair_slave = await SEA.pair();
@@ -35,8 +36,8 @@
         };
         secret_hash = await SEA.secret(pair_slave.epub, pair_master)
     }
-    
-    
+
+
 
     var gunDC;
     if (process.env.INITIATOR) {
@@ -52,13 +53,13 @@
         socket.on("test", function(val) {
             console.log("test", val);
         });
-        
-        var sendInt = setInterval(function(){
-            
+
+        var sendInt = setInterval(function() {
+
             socket.emit("time", new Date().getTime());
-            
-        },1000)
-        
+
+        }, 1000)
+
         socket.on("time", function(val) {
             console.log("time from socket", val);
         });
@@ -69,12 +70,12 @@
         });
 
         socket.emit("test", process.env.INITIATOR || false);
-        
-        setTimeout(function(){
-            if(gunDC.initiator)
+
+        setTimeout(function() {
+            if (gunDC.initiator)
                 gunDC.destroy();
-        },10 * 1000);
-        
+        }, 10 * 1000);
+
     });
 
 
@@ -82,22 +83,47 @@
         gunDC.auth(function(pair, pass) {
             console.log("auth", pair);
             // if (enforce_pair) {
-                if (gunDC.initiator) {
-                    if (pair.epub == pair_master.epub) {
-                        pass();
-                    }
+            if (gunDC.initiator) {
+                if (pair.epub == pair_master.epub) {
+                    pass();
                 }
-                else {
-                    if (pair.epub == pair_slave.epub) {
-                        pass();
-                    }
+            }
+            else {
+                if (pair.epub == pair_slave.epub) {
+                    pass();
                 }
+            }
             // }else{
             //     pass();
             // }
-    
+
         });
 
-    gunDC.on("debug", console.log)
+    gunDC.on("debug", console.log);
     
+    process.stdin.resume(); //so the program will not close instantly
+
+    function exitHandler(options, exitCode) {
+        // if (options.cleanup){
+        //   $log('clean');
+        // } 
+        // if (exitCode || exitCode === 0) $log("exitCode",exitCode);
+        if (options.exit) {
+            gunDC.destroy();
+            process.exit();
+        }
+    }
+
+    //do something when app is closing
+    process.on('exit', exitHandler.bind(null, { cleanup: true }));
+
+    //catches ctrl+c event
+    process.on('SIGINT', exitHandler.bind(null, { exit: true }));
+
+    // catches "kill pid" (for example: nodemon restart)
+    process.on('SIGUSR1', exitHandler.bind(null, { exit: true }));
+    process.on('SIGUSR2', exitHandler.bind(null, { exit: true }));
+
+    //catches uncaught exceptions
+    process.on('uncaughtException', exitHandler.bind(null, { exit: true }));
 })();
