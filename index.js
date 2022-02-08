@@ -212,11 +212,13 @@ module.exports = function(options, secret_hash, pair_me, pair_them) {
         var socket = new EventEmitter();
 
         socket._emit = socket.emit;
-        socket.emit = function(key, value) {
+        socket.emit = function() {
+            var value = Array.from(arguments);
+            // var key = value.shift();
             (async function() {
                 if (!peer.destroyed && peer.$connected) {
                     var $t = JSON.stringify({
-                        message: key,
+                        message: "event",
                         data: value
                     });
                     var t = await SEA.encrypt($t, await SEA.secret(peer.pair.epub, pair_me));
@@ -296,8 +298,10 @@ module.exports = function(options, secret_hash, pair_me, pair_them) {
             }
 
             if (data.message) {
-                $log("RECV:", data.message, data.data)
-                socket._emit(data.message, data.data);
+                if(data.message == "event"){
+                    $log("RECV:", data.data)
+                    socket._emit.apply(socket, data.data);
+                }
             }
         });
 

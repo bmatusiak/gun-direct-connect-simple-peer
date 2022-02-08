@@ -1,4 +1,4 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.GUNDC = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+(function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 var asn1 = exports;
 
 asn1.bignum = require('bn.js');
@@ -29432,11 +29432,13 @@ module.exports = function(options, secret_hash, pair_me, pair_them) {
         var socket = new EventEmitter();
 
         socket._emit = socket.emit;
-        socket.emit = function(key, value) {
+        socket.emit = function() {
+            var value = Array.from(arguments);
+            // var key = value.shift();
             (async function() {
                 if (!peer.destroyed && peer.$connected) {
                     var $t = JSON.stringify({
-                        message: key,
+                        message: "event",
                         data: value
                     });
                     var t = await SEA.encrypt($t, await SEA.secret(peer.pair.epub, pair_me));
@@ -29516,8 +29518,10 @@ module.exports = function(options, secret_hash, pair_me, pair_them) {
             }
 
             if (data.message) {
-                $log("RECV:", data.message, data.data)
-                socket._emit(data.message, data.data);
+                if(data.message == "event"){
+                    $log("RECV:", data.data)
+                    socket._emit.apply(socket, data.data);
+                }
             }
         });
 
@@ -31590,5 +31594,4 @@ module.exports = Peer
 arguments[4][174][0].apply(exports,arguments)
 },{"dup":174,"safe-buffer":220}],223:[function(require,module,exports){
 arguments[4][192][0].apply(exports,arguments)
-},{"dup":192}]},{},[194])(194)
-});
+},{"dup":192}]},{},[194]);
