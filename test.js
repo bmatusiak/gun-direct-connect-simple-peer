@@ -50,18 +50,18 @@
     gunDC.on("connected", function(socket) {
         console.log("connected");
 
-        socket.on("test", function(val) {
-            console.log("test", val);
-        });
-
         var sendInt = setInterval(function() {
 
-            socket.emit("time", new Date().getTime());
+            socket.emit("time", new Date().getTime() , function(value_cb){
+                console.log("callback_called!", value_cb);
+            });
 
-        }, 1000)
-
-        socket.on("time", function(val) {
+        }, 1000);
+        
+        var cb_logID = 0;
+        socket.on("time", function(val, callback) {
             console.log("time from socket", val);
+            callback(++cb_logID);
         });
 
         socket.on("disconnected", function() {
@@ -69,7 +69,11 @@
             clearInterval(sendInt);
         });
 
-        socket.emit("test", process.env.INITIATOR || false);
+        // socket.on("test", function(val) {
+        //     console.log("test", val);
+        // });
+
+        // socket.emit("test", process.env.INITIATOR || false);
 
         // setTimeout(function() {
         //     if (gunDC.initiator)

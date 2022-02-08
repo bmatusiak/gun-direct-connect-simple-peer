@@ -212,24 +212,39 @@ module.exports = function(options, secret_hash, pair_me, pair_them) {
         var socket = new EventEmitter();
 
         socket._emit = socket.emit;
+        var callbacks = {};
+
         socket.emit = function() {
             var value = Array.from(arguments);
-            // var key = value.shift();
-            (async function() {
-                if (!peer.destroyed && peer.$connected) {
-                    var $t = JSON.stringify({
-                        message: "event",
-                        data: value
-                    });
+            for (var i in value) {
+                if (typeof value[i] == "function") {
+                    var callback_id = Array.from($crypto.randomBytes(32)).join('')
+                    callbacks[callback_id] = value[i];
+                    value[i] = { callback: callback_id };
+                }
+            }
+            send("event", value, 0);
+
+        };
+
+        function send(message, value, id) {
+            if (!peer.destroyed && peer.$connected) {
+                var $t = JSON.stringify({
+                    message: message,
+                    data: value,
+                    id: id || Array.from($crypto.randomBytes(32)).join('')
+                });
+                // $log("sending", $t);
+                (async function() {
                     var t = await SEA.encrypt($t, await SEA.secret(peer.pair.epub, pair_me));
                     peer.send(t);
-                }
-            })()
+                })();
+            }
         }
         peer.socket = socket;
 
         socket.on("closing", function() {
-            peer.destroy()
+            peer.destroy();
         });
 
         peer.$connected = false;
@@ -298,8 +313,23 @@ module.exports = function(options, secret_hash, pair_me, pair_them) {
             }
 
             if (data.message) {
-                if(data.message == "event"){
+                if (data.message == "callback") {
+                    // $log("callback recv:", data.id )
+                    callbacks[data.id].apply({}, data.data);
+                }else
+                if (data.message == "event") {
                     $log("RECV:", data.data)
+
+                    for (var i in data.data) {
+                        if (data.data[i].callback) {
+                            var callback_id = data.data[i].callback;
+                            data.data[i] = function() {
+                                var value = Array.from(arguments);
+                                send("callback", value, callback_id);
+                            };
+                        }
+                    }
+
                     socket._emit.apply(socket, data.data);
                 }
             }
