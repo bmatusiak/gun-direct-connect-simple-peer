@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "bundle": "browserify index.js -o bundle.js"
+    "bundle": "browserify index.js -o bundle.js --standalone GUNDC"
   },
   "author": "",
   "license": "ISC",
